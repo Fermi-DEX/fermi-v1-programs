@@ -1,0 +1,11 @@
+diff -ruN '--exclude=.cargo-ok' '--exclude=.cargo_vcs_info.json' '--exclude=Cargo.toml.orig' /home/dm/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-program-1.16.14/src/account_info.rs solana-program-1.16.14-local/src/account_info.rs
+--- /home/dm/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/solana-program-1.16.14/src/account_info.rs	2006-07-24 01:21:28.000000000 +0000
++++ solana-program-1.16.14-local/src/account_info.rs	2026-03-30 23:39:02.417897812 +0000
+@@ -182,6 +182,7 @@
+         Ok(())
+     }
+ 
++    #[allow(invalid_reference_casting)]
+     pub fn assign(&self, new_owner: &Pubkey) {
+         // Set the non-mut owner field
+         unsafe {

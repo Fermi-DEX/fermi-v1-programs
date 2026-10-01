@@ -1,0 +1,12 @@
+diff -ruN '--exclude=.cargo-ok' '--exclude=.cargo_vcs_info.json' '--exclude=Cargo.toml.orig' /home/dm/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anchor-attribute-program-0.28.0/Cargo.toml anchor-attribute-program-0.28.0-local/Cargo.toml
+--- /home/dm/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anchor-attribute-program-0.28.0/Cargo.toml	2006-07-24 01:21:28.000000000 +0000
++++ anchor-attribute-program-0.28.0-local/Cargo.toml	2026-03-24 13:20:01.408715497 +0000
+@@ -24,7 +24,7 @@
+ proc-macro = true
+ 
+ [dependencies.anchor-syn]
+-version = "0.28.0"
++path = "../anchor-syn-0.28.0-local"
+ 
+ [dependencies.anyhow]
+ version = "1"

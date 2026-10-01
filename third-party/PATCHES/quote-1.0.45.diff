@@ -1,0 +1,11 @@
+diff -ruN '--exclude=.cargo-ok' '--exclude=.cargo_vcs_info.json' '--exclude=Cargo.toml.orig' quote-1.0.45/Cargo.toml /home/hetalkenaudekar/stagin4/experimental/mainnet1/fermi-v1/third-party/quote-1.0.45-local/Cargo.toml
+--- quote-1.0.45/Cargo.toml	2006-07-24 01:21:28.000000000 +0000
++++ /home/hetalkenaudekar/stagin4/experimental/mainnet1/fermi-v1/third-party/quote-1.0.45-local/Cargo.toml	2026-03-24 19:14:49.788760851 +0000
+@@ -11,7 +11,6 @@
+ 
+ [package]
+ edition = "2021"
+-rust-version = "1.71"
+ name = "quote"
+ version = "1.0.45"
+ authors = ["David Tolnay <dtolnay@gmail.com>"]

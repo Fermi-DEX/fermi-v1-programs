@@ -1,0 +1,11 @@
+diff -ruN '--exclude=.cargo-ok' '--exclude=.cargo_vcs_info.json' '--exclude=Cargo.toml.orig' unicode-ident-1.0.24/Cargo.toml /home/hetalkenaudekar/stagin4/experimental/mainnet1/fermi-v1/third-party/unicode-ident-1.0.24-local/Cargo.toml
+--- unicode-ident-1.0.24/Cargo.toml	2006-07-24 01:21:28.000000000 +0000
++++ /home/hetalkenaudekar/stagin4/experimental/mainnet1/fermi-v1/third-party/unicode-ident-1.0.24-local/Cargo.toml	2026-03-24 19:17:15.628761054 +0000
+@@ -11,7 +11,6 @@
+ 
+ [package]
+ edition = "2021"
+-rust-version = "1.71"
+ name = "unicode-ident"
+ version = "1.0.24"
+ authors = ["David Tolnay <dtolnay@gmail.com>"]

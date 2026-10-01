@@ -1,0 +1,12 @@
+[programs.mainnet]
+mango_v4 = "FRMiX94PWHbndvySq8xyRx185GvPeggUeKaLmZgVdd4"
+
+[programs.localnet]
+mango_v4 = "FRMiX94PWHbndvySq8xyRx185GvPeggUeKaLmZgVdd4"
+
+[features]
+seeds = true
+
+[provider]
+cluster = "mainnet"
+wallet = "~/.config/solana/id.json"

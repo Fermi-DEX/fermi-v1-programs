@@ -1,0 +1,20 @@
+diff -ruN '--exclude=.cargo-ok' '--exclude=.cargo_vcs_info.json' '--exclude=Cargo.toml.orig' /home/dm/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ahash-0.7.8/build.rs ahash-0.7.8-local/build.rs
+--- /home/dm/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/ahash-0.7.8/build.rs	2006-07-24 01:21:28.000000000 +0000
++++ ahash-0.7.8-local/build.rs	2026-03-23 07:37:12.016801077 +0000
+@@ -4,14 +4,8 @@
+ 
+ fn main() {
+     println!("cargo:rerun-if-changed=build.rs");
+-    if let Some(channel) = version_check::Channel::read() {
+-        if channel.supports_features() {
+-            println!("cargo:rustc-cfg=feature=\"specialize\"");
+-            if version_check::Version::read().map_or(false, |v| v.at_most("1.77.9")) {
+-                println!("cargo:rustc-cfg=feature=\"stdsimd\"");
+-            }
+-        }
+-    }
++    // Disabled for Solana SBF builds: feature probing can enable cfgs that are
++    // unsupported by the effective compiler used in this mixed toolchain setup.
+     let os = env::var("CARGO_CFG_TARGET_OS").expect("CARGO_CFG_TARGET_OS was not set");
+     if os.eq_ignore_ascii_case("linux")
+         || os.eq_ignore_ascii_case("android")

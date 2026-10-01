@@ -1,0 +1,455 @@
+# openbook-v2 base: f3e17421e675b083b584867594bf3cf4f675d156 (v0.2.10) from https://github.com/openbook-dex/openbook-v2.git
+diff --git a/programs/openbook-v2/Cargo.toml b/programs/openbook-v2/Cargo.toml
+index f81f38d..286f47a 100644
+--- a/programs/openbook-v2/Cargo.toml
++++ b/programs/openbook-v2/Cargo.toml
+@@ -38,8 +38,6 @@ solana-security-txt = "1.1.1"
+ solana-program = { workspace = true }
+ solana-sdk = { workspace = true, optional = true }
+ static_assertions = "1.1"
+-switchboard-program = ">=0.2.0"
+-switchboard-solana = "0.29.99"
+ 
+ [dev-dependencies]
+ async-trait = "0.1.52"
+diff --git a/programs/openbook-v2/src/accounts_ix/place_order.rs b/programs/openbook-v2/src/accounts_ix/place_order.rs
+index 423036b..8647c65 100644
+--- a/programs/openbook-v2/src/accounts_ix/place_order.rs
++++ b/programs/openbook-v2/src/accounts_ix/place_order.rs
+@@ -1,4 +1,4 @@
+-use crate::accounts_ix::{CancelOrder, CancelOrderBumps};
++use crate::accounts_ix::CancelOrder;
+ use crate::error::OpenBookError;
+ use crate::pubkey_option::NonZeroKey;
+ use crate::state::*;
+@@ -64,9 +64,3 @@ impl<'info> PlaceOrder<'info> {
+         }
+     }
+ }
+-
+-impl PlaceOrderBumps {
+-    pub fn to_cancel_order(&self) -> CancelOrderBumps {
+-        CancelOrderBumps {}
+-    }
+-}
+diff --git a/programs/openbook-v2/src/accounts_ix/settle_funds_expired.rs b/programs/openbook-v2/src/accounts_ix/settle_funds_expired.rs
+index c692b6d..896c26d 100644
+--- a/programs/openbook-v2/src/accounts_ix/settle_funds_expired.rs
++++ b/programs/openbook-v2/src/accounts_ix/settle_funds_expired.rs
+@@ -1,4 +1,4 @@
+-use crate::accounts_ix::{SettleFunds, SettleFundsBumps};
++use crate::accounts_ix::SettleFunds;
+ use crate::error::OpenBookError;
+ use crate::state::*;
+ use anchor_lang::prelude::*;
+@@ -70,9 +70,3 @@ impl<'info> SettleFundsExpired<'info> {
+         }
+     }
+ }
+-
+-impl SettleFundsExpiredBumps {
+-    pub fn to_settle_funds(&self) -> SettleFundsBumps {
+-        SettleFundsBumps {}
+-    }
+-}
+diff --git a/programs/openbook-v2/src/error.rs b/programs/openbook-v2/src/error.rs
+index 3641888..b1e7ce4 100644
+--- a/programs/openbook-v2/src/error.rs
++++ b/programs/openbook-v2/src/error.rs
+@@ -140,14 +140,20 @@ pub trait Contextable {
+ impl Contextable for Error {
+     fn context(self, c: impl Display) -> Self {
+         match self {
+-            Error::AnchorError(err) => Error::AnchorError(Box::new(AnchorError {
+-                error_msg: if err.error_msg.is_empty() {
++            Error::AnchorError(err) => {
++                let error_msg = if err.error_msg.is_empty() {
+                     format!("{}", c)
+                 } else {
+                     format!("{}; {}", err.error_msg, c)
+-                },
+-                ..*err
+-            })),
++                };
++                Error::AnchorError(AnchorError {
++                    error_msg,
++                    error_code_number: err.error_code_number,
++                    error_origin: err.error_origin,
++                    compared_values: err.compared_values,
++                    error_name: err.error_name,
++                })
++            }
+             // Maybe wrap somehow?
+             Error::ProgramError(err) => Error::ProgramError(err),
+         }
+diff --git a/programs/openbook-v2/src/instructions/create_market.rs b/programs/openbook-v2/src/instructions/create_market.rs
+index b58ff07..53bfc16 100644
+--- a/programs/openbook-v2/src/instructions/create_market.rs
++++ b/programs/openbook-v2/src/instructions/create_market.rs
+@@ -68,7 +68,7 @@ pub fn create_market(
+         open_orders_admin: ctx.accounts.open_orders_admin.non_zero_key(),
+         consume_events_admin: ctx.accounts.consume_events_admin.non_zero_key(),
+         close_market_admin: ctx.accounts.close_market_admin.non_zero_key(),
+-        bump: ctx.bumps.market_authority,
++        bump: ctx.bumps["market_authority"],
+         base_decimals: ctx.accounts.base_mint.decimals,
+         quote_decimals: ctx.accounts.quote_mint.decimals,
+         padding1: Default::default(),
+diff --git a/programs/openbook-v2/src/instructions/create_open_orders_account.rs b/programs/openbook-v2/src/instructions/create_open_orders_account.rs
+index b779132..13d1ac9 100644
+--- a/programs/openbook-v2/src/instructions/create_open_orders_account.rs
++++ b/programs/openbook-v2/src/instructions/create_open_orders_account.rs
+@@ -18,7 +18,7 @@ pub fn create_open_orders_account(
+     account.name = fill_from_str(&name)?;
+     account.account_num = indexer.created_counter;
+     account.market = ctx.accounts.market.key();
+-    account.bump = ctx.bumps.open_orders_account;
++    account.bump = ctx.bumps["open_orders_account"];
+     account.owner = ctx.accounts.owner.key();
+     account.delegate = ctx.accounts.delegate_account.non_zero_key();
+     account.version = 1;
+diff --git a/programs/openbook-v2/src/instructions/create_open_orders_indexer.rs b/programs/openbook-v2/src/instructions/create_open_orders_indexer.rs
+index c9376d8..9cca730 100644
+--- a/programs/openbook-v2/src/instructions/create_open_orders_indexer.rs
++++ b/programs/openbook-v2/src/instructions/create_open_orders_indexer.rs
+@@ -4,7 +4,7 @@ use anchor_lang::prelude::*;
+ pub fn create_open_orders_indexer(ctx: Context<CreateOpenOrdersIndexer>) -> Result<()> {
+     let indexer = &mut ctx.accounts.open_orders_indexer;
+ 
+-    indexer.bump = ctx.bumps.open_orders_indexer;
++    indexer.bump = ctx.bumps["open_orders_indexer"];
+     indexer.created_counter = 0;
+ 
+     Ok(())
+diff --git a/programs/openbook-v2/src/instructions/edit_order.rs b/programs/openbook-v2/src/instructions/edit_order.rs
+index ebfea5a..fe287aa 100644
+--- a/programs/openbook-v2/src/instructions/edit_order.rs
++++ b/programs/openbook-v2/src/instructions/edit_order.rs
+@@ -21,7 +21,7 @@ pub fn edit_order<'c: 'info, 'info>(
+             ctx.program_id,
+             &mut ctx.accounts.to_cancel_order(),
+             ctx.remaining_accounts,
+-            ctx.bumps.to_cancel_order(),
++            ctx.bumps.clone(),
+         ),
+         cancel_client_order_id,
+     )?;
+diff --git a/programs/openbook-v2/src/instructions/settle_funds_expired.rs b/programs/openbook-v2/src/instructions/settle_funds_expired.rs
+index f7ac85a..e1a0742 100644
+--- a/programs/openbook-v2/src/instructions/settle_funds_expired.rs
++++ b/programs/openbook-v2/src/instructions/settle_funds_expired.rs
+@@ -17,6 +17,6 @@ pub fn settle_funds_expired<'info>(
+         ctx.program_id,
+         &mut ctx.accounts.to_settle_funds(),
+         ctx.remaining_accounts,
+-        ctx.bumps.to_settle_funds(),
++        ctx.bumps.clone(),
+     ))
+ }
+diff --git a/programs/openbook-v2/src/state/market.rs b/programs/openbook-v2/src/state/market.rs
+index 03b6bc3..2e134b3 100644
+--- a/programs/openbook-v2/src/state/market.rs
++++ b/programs/openbook-v2/src/state/market.rs
+@@ -18,6 +18,7 @@ pub const PENALTY_EVENT_HEAP: u64 = 500;
+ 
+ #[account(zero_copy)]
+ #[derive(Debug)]
++#[repr(C, packed)]
+ pub struct Market {
+     /// PDA bump
+     pub bump: u8,
+@@ -261,9 +262,10 @@ impl Market {
+     ) -> Result<Option<I80F48>> {
+         assert_eq!(self.oracle_a, *oracle_acc.key());
+         let oracle = oracle::oracle_state_unchecked(oracle_acc)?;
++        let oracle_config = self.oracle_config;
+ 
+-        if oracle.is_stale(oracle_acc.key(), &self.oracle_config, now_slot)
+-            || !oracle.has_valid_confidence(oracle_acc.key(), &self.oracle_config)
++        if oracle.is_stale(oracle_acc.key(), &oracle_config, now_slot)
++            || !oracle.has_valid_confidence(oracle_acc.key(), &oracle_config)
+         {
+             Ok(None)
+         } else {
+@@ -284,10 +286,11 @@ impl Market {
+ 
+         let oracle_a = oracle::oracle_state_unchecked(oracle_a_acc)?;
+         let oracle_b = oracle::oracle_state_unchecked(oracle_b_acc)?;
++        let oracle_config = self.oracle_config;
+ 
+-        if oracle_a.is_stale(oracle_a_acc.key(), &self.oracle_config, now_slot)
+-            || oracle_b.is_stale(oracle_b_acc.key(), &self.oracle_config, now_slot)
+-            || !oracle_a.has_valid_combined_confidence(&oracle_b, &self.oracle_config)
++        if oracle_a.is_stale(oracle_a_acc.key(), &oracle_config, now_slot)
++            || oracle_b.is_stale(oracle_b_acc.key(), &oracle_config, now_slot)
++            || !oracle_a.has_valid_combined_confidence(&oracle_b, &oracle_config)
+         {
+             Ok(None)
+         } else {
+diff --git a/programs/openbook-v2/src/state/open_orders_account.rs b/programs/openbook-v2/src/state/open_orders_account.rs
+index 81ad493..42d23b2 100644
+--- a/programs/openbook-v2/src/state/open_orders_account.rs
++++ b/programs/openbook-v2/src/state/open_orders_account.rs
+@@ -13,6 +13,7 @@ pub const MAX_OPEN_ORDERS: usize = 24;
+ 
+ #[account(zero_copy)]
+ #[derive(Debug)]
++#[repr(C, packed)]
+ pub struct OpenOrdersAccount {
+     pub owner: Pubkey,
+     pub market: Pubkey,
+@@ -347,6 +348,7 @@ impl OpenOrdersAccount {
+ #[zero_copy]
+ #[derive(Derivative)]
+ #[derivative(Debug)]
++#[repr(C, packed)]
+ pub struct Position {
+     /// Base lots in open bids
+     pub bids_base_lots: i64,
+@@ -423,6 +425,7 @@ impl Position {
+ 
+ #[zero_copy]
+ #[derive(Debug)]
++#[repr(C, packed)]
+ pub struct OpenOrder {
+     pub id: u128,
+     pub client_id: u64,
+diff --git a/programs/openbook-v2/src/state/oracle.rs b/programs/openbook-v2/src/state/oracle.rs
+index 447d7f8..5c1ba7f 100644
+--- a/programs/openbook-v2/src/state/oracle.rs
++++ b/programs/openbook-v2/src/state/oracle.rs
+@@ -3,8 +3,6 @@ use anchor_lang::Discriminator;
+ use fixed::types::U64F64;
+ use static_assertions::const_assert_eq;
+ use std::mem::size_of;
+-use switchboard_program::FastRoundResultAccountData;
+-use switchboard_solana::AggregatorAccountData;
+ 
+ use crate::accounts_zerocopy::*;
+ use crate::error::*;
+@@ -21,15 +19,6 @@ pub const fn power_of_ten_float(decimals: i8) -> f64 {
+     DECIMAL_CONSTANTS_F64[(decimals + DECIMAL_CONSTANT_ZERO_INDEX) as usize]
+ }
+ 
+-pub mod switchboard_v1_devnet_oracle {
+-    use solana_program::declare_id;
+-    declare_id!("7azgmy1pFXHikv36q1zZASvFq5vFa39TT9NweVugKKTU");
+-}
+-pub mod switchboard_v2_mainnet_oracle {
+-    use solana_program::declare_id;
+-    declare_id!("DtmE9D2CSB4L5D6A15mraeEjrGMm6auWVzgaD8hK2tZM");
+-}
+-
+ #[zero_copy]
+ #[derive(AnchorDeserialize, AnchorSerialize, Debug)]
+ pub struct OracleConfig {
+@@ -156,17 +145,6 @@ pub fn determine_oracle_type(acc_info: &impl KeyedAccountReader) -> Result<Oracl
+         return Ok(OracleType::Pyth);
+     } else if data[0..8] == StubOracle::discriminator() {
+         return Ok(OracleType::Stub);
+-    }
+-    // https://github.com/switchboard-xyz/switchboard-v2/blob/main/libraries/rs/src/aggregator.rs#L114
+-    // note: disc is not public, hence the copy pasta
+-    else if data[0..8] == [217, 230, 65, 101, 201, 162, 27, 125] {
+-        return Ok(OracleType::SwitchboardV2);
+-    }
+-    // note: this is the only known way of checking this
+-    else if acc_info.owner() == &switchboard_v1_devnet_oracle::ID
+-        || acc_info.owner() == &switchboard_v2_mainnet_oracle::ID
+-    {
+-        return Ok(OracleType::SwitchboardV1);
+     } else if acc_info.owner() == &raydium_internal::ID {
+         return Ok(OracleType::RaydiumCLMM);
+     }
+@@ -179,9 +157,7 @@ pub fn determine_oracle_type(acc_info: &impl KeyedAccountReader) -> Result<Oracl
+ /// Returns the publish slot in addition to the price info.
+ ///
+ /// Also see pyth's PriceAccount::get_price_no_older_than().
+-fn pyth_get_price(
+-    account: &pyth_sdk_solana::state::SolanaPriceAccount,
+-) -> (pyth_sdk_solana::Price, u64) {
++fn pyth_get_price(account: &pyth_sdk_solana::state::PriceAccount) -> (pyth_sdk_solana::Price, u64) {
+     use pyth_sdk_solana::*;
+     if account.agg.status == state::PriceStatus::Trading {
+         (
+@@ -248,45 +224,10 @@ pub fn oracle_state_unchecked(acc_info: &impl KeyedAccountReader) -> Result<Orac
+                 oracle_type: OracleType::Pyth,
+             }
+         }
+-        OracleType::SwitchboardV2 => {
+-            fn from_foreign_error(e: impl std::fmt::Display) -> Error {
+-                error_msg!("{}", e)
+-            }
+-
+-            let feed = bytemuck::from_bytes::<AggregatorAccountData>(&data[8..]);
+-            let feed_result = feed.get_result().map_err(from_foreign_error)?;
+-            let price: f64 = feed_result.try_into().map_err(from_foreign_error)?;
+-            let deviation: f64 = feed
+-                .latest_confirmed_round
+-                .std_deviation
+-                .try_into()
+-                .map_err(from_foreign_error)?;
+-
+-            // The round_open_slot is an underestimate of the last update slot: Reporters will see
+-            // the round opening and only then start executing the price tasks.
+-            let last_update_slot = feed.latest_confirmed_round.round_open_slot;
+-
+-            require_gte!(price, 0f64);
+-            OracleState {
+-                price,
+-                last_update_slot,
+-                deviation,
+-                oracle_type: OracleType::SwitchboardV2,
+-            }
+-        }
+-        OracleType::SwitchboardV1 => {
+-            let result = FastRoundResultAccountData::deserialize(data).unwrap();
+-            let price = result.result.result;
+-
+-            let deviation = result.result.max_response - result.result.min_response;
+-            let last_update_slot = result.result.round_open_slot;
+-            require_gte!(price, 0f64);
+-            OracleState {
+-                price,
+-                last_update_slot,
+-                deviation,
+-                oracle_type: OracleType::SwitchboardV1,
+-            }
++        OracleType::SwitchboardV2 | OracleType::SwitchboardV1 => {
++            return Err(error_msg!(
++                "switchboard oracles are disabled in the local openbook patch"
++            ));
+         }
+         OracleType::RaydiumCLMM => {
+             let pool = bytemuck::from_bytes::<PoolState>(&data[8..]);
+@@ -326,16 +267,6 @@ mod tests {
+                 OracleType::Pyth,
+                 Pubkey::default(),
+             ),
+-            (
+-                "8k7F9Xb36oFJsjpCKpsXvg4cgBRoZtwNTc3EzG5Ttd2o",
+-                OracleType::SwitchboardV1,
+-                switchboard_v1_devnet_oracle::ID,
+-            ),
+-            (
+-                "GvDMxPzN1sCj7L26YDK2HnMRXEQmQ2aemov8YBtPS7vR",
+-                OracleType::SwitchboardV2,
+-                Pubkey::default(),
+-            ),
+             (
+                 "2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv",
+                 OracleType::RaydiumCLMM,
+diff --git a/programs/openbook-v2/src/state/orderbook/nodes.rs b/programs/openbook-v2/src/state/orderbook/nodes.rs
+index ec8862a..8bcf070 100644
+--- a/programs/openbook-v2/src/state/orderbook/nodes.rs
++++ b/programs/openbook-v2/src/state/orderbook/nodes.rs
+@@ -1,7 +1,8 @@
+ use std::mem::{align_of, size_of};
+ 
+ use anchor_lang::prelude::*;
+-use bytemuck::{cast_mut, cast_ref};
++use borsh::{BorshDeserialize, BorshSerialize};
++use bytemuck::{bytes_of, cast_mut, cast_ref, try_from_bytes};
+ use num_enum::{IntoPrimitive, TryFromPrimitive};
+ use static_assertions::const_assert_eq;
+ 
+@@ -75,8 +76,8 @@ pub fn fixed_price_lots(price_data: u64) -> i64 {
+ /// Each InnerNode has exactly two children, which are either InnerNodes themselves,
+ /// or LeafNodes. The children share the top `prefix_len` bits of `key`. The left
+ /// child has a 0 in the next bit, and the right a 1.
+-#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable, AnchorSerialize, AnchorDeserialize)]
+-#[repr(C)]
++#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
++#[repr(C, packed)]
+ pub struct InnerNode {
+     pub tag: u8, // NodeTag
+     pub padding: [u8; 3],
+@@ -131,18 +132,8 @@ impl InnerNode {
+ }
+ 
+ /// LeafNodes represent an order in the binary tree
+-#[derive(
+-    Debug,
+-    Copy,
+-    Clone,
+-    PartialEq,
+-    Eq,
+-    bytemuck::Pod,
+-    bytemuck::Zeroable,
+-    AnchorSerialize,
+-    AnchorDeserialize,
+-)]
+-#[repr(C)]
++#[derive(Debug, Copy, Clone, PartialEq, Eq, bytemuck::Pod, bytemuck::Zeroable)]
++#[repr(C, packed)]
+ pub struct LeafNode {
+     /// NodeTag
+     pub tag: u8,
+@@ -236,7 +227,7 @@ impl LeafNode {
+ }
+ 
+ #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+-#[repr(C)]
++#[repr(C, packed)]
+ pub struct FreeNode {
+     pub(crate) tag: u8, // NodeTag
+     pub(crate) padding: [u8; 3],
+@@ -249,15 +240,15 @@ const_assert_eq!(size_of::<FreeNode>(), NODE_SIZE);
+ const_assert_eq!(size_of::<FreeNode>() % 8, 0);
+ 
+ #[zero_copy]
++#[repr(C, packed)]
+ pub struct AnyNode {
+     pub tag: u8,
+     pub data: [u8; 79],
+-    // essential to make AnyNode alignment the same as other node types
++    // force_align kept for layout compatibility but has no alignment effect when packed
+     pub force_align: u64,
+ }
+ const_assert_eq!(size_of::<AnyNode>(), NODE_SIZE);
+ const_assert_eq!(size_of::<AnyNode>() % 8, 0);
+-const_assert_eq!(align_of::<AnyNode>(), 8);
+ const_assert_eq!(size_of::<AnyNode>(), size_of::<InnerNode>());
+ const_assert_eq!(align_of::<AnyNode>(), align_of::<InnerNode>());
+ const_assert_eq!(size_of::<AnyNode>(), size_of::<LeafNode>());
+@@ -360,6 +351,40 @@ impl AsRef<AnyNode> for LeafNode {
+     }
+ }
+ 
++// Manual BorshSerialize/BorshDeserialize for packed structs to avoid
++// taking references to unaligned fields (E0793 in Rust 1.84+).
++impl BorshSerialize for InnerNode {
++    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
++        writer.write_all(bytes_of(self))
++    }
++}
++
++impl BorshDeserialize for InnerNode {
++    fn deserialize_reader<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
++        let mut buf = [0u8; size_of::<InnerNode>()];
++        reader.read_exact(&mut buf)?;
++        try_from_bytes::<InnerNode>(&buf)
++            .copied()
++            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()))
++    }
++}
++
++impl BorshSerialize for LeafNode {
++    fn serialize<W: std::io::Write>(&self, writer: &mut W) -> std::io::Result<()> {
++        writer.write_all(bytes_of(self))
++    }
++}
++
++impl BorshDeserialize for LeafNode {
++    fn deserialize_reader<R: std::io::Read>(reader: &mut R) -> std::io::Result<Self> {
++        let mut buf = [0u8; size_of::<LeafNode>()];
++        reader.read_exact(&mut buf)?;
++        try_from_bytes::<LeafNode>(&buf)
++            .copied()
++            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e.to_string()))
++    }
++}
++
+ #[cfg(test)]
+ mod tests {
+     use super::*;
