@@ -1,0 +1,23 @@
+{
+  "program": "FLPRrDPN5tJpLx6wY6FUiGFN5Kws8gHUCYMCcs6Goa9Q",
+  "cluster": "mainnet-beta",
+  "programData": "Fekec2bVaipgZ6XsKEpSqFobSnjNEUgwfi4qxGNsq4Px",
+  "deploymentSlot": 461700429,
+  "observedSlot": 462104291,
+  "elfBytes": 1776216,
+  "elfSha256": "4cd0f7787be53a52195ff21bc34797f3eb40de1810d17443d883f1533f59f36e",
+  "executableHash": "5e03fd650b2d724636460edfa8f46d2b1435a4530f9999855d5573504b12c263",
+  "deployedBytesEqual": true,
+  "allocationPaddingZero": true,
+  "solanaVerify": "0.5.2",
+  "image": "solanafoundation/solana-verifiable-build@sha256:e9cfc73adb9d966d9aed5a10a4943726f42002fe25ac9506e3c32e4580e7d743",
+  "buildMountPath": "flp/programs",
+  "workspacePath": "flp/programs/flp-vault/build",
+  "library": "flp_vault",
+  "features": [
+    "custom-heap",
+    "no-idl"
+  ],
+  "commentsRemoved": 6806,
+  "remoteVerification": "not submitted"
+}

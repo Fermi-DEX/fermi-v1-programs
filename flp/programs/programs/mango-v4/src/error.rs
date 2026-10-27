@@ -1,0 +1,432 @@
+use anchor_lang::prelude::*;
+use core::fmt::Display;
+
+                                   
+                                                              
+#[error_code]
+pub enum FermiError {
+    #[msg("")]
+    SomeError,
+    #[msg("")]
+    NotImplementedError,
+    #[msg("checked math error")]
+    MathError,
+    #[msg("")]
+    UnexpectedOracle,
+    #[msg("oracle type cannot be determined")]
+    UnknownOracleType,
+    #[msg("")]
+    InvalidFlashLoanTargetCpiProgram,
+    #[msg("health must be positive")]
+    HealthMustBePositive,
+    #[msg("health must be positive or not decrease")]
+    HealthMustBePositiveOrIncrease,                                                     
+    #[msg("health must be negative")]
+    HealthMustBeNegative,
+    #[msg("the account is bankrupt")]
+    IsBankrupt,
+    #[msg("the account is not bankrupt")]
+    IsNotBankrupt,
+    #[msg("no free token position index")]
+    NoFreeTokenPositionIndex,
+    #[msg("no free serum3 open orders index")]
+    NoFreeSerum3OpenOrdersIndex,
+    #[msg("no free perp position index")]
+    NoFreePerpPositionIndex,
+    #[msg("serum3 open orders exist already")]
+    Serum3OpenOrdersExistAlready,
+    #[msg("bank vault has insufficent funds")]
+    InsufficentBankVaultFunds,
+    #[msg("account is currently being liquidated")]
+    BeingLiquidated,
+    #[msg("invalid bank")]
+    InvalidBank,
+    #[msg("account profitability is mismatched")]
+    ProfitabilityMismatch,
+    #[msg("cannot settle with self")]
+    CannotSettleWithSelf,
+    #[msg("perp position does not exist")]
+    PerpPositionDoesNotExist,
+    #[msg("max settle amount must be greater than zero")]
+    MaxSettleAmountMustBeGreaterThanZero,
+    #[msg("the perp position has open orders or unprocessed fill events")]
+    HasOpenPerpOrders,
+    #[msg("an oracle does not reach the confidence threshold")]
+    OracleConfidence,
+    #[msg("an oracle is stale")]
+    OracleStale,
+    #[msg("settlement amount must always be positive")]
+    SettlementAmountMustBePositive,
+    #[msg("bank utilization has reached limit")]
+    BankBorrowLimitReached,
+    #[msg("bank net borrows has reached limit - this is an intermittent error - the limit will reset regularly")]
+    BankNetBorrowsLimitReached,
+    #[msg("token position does not exist")]
+    TokenPositionDoesNotExist,
+    #[msg("token deposits into accounts that are being liquidated must bring their health above the init threshold")]
+    DepositsIntoLiquidatingMustRecover,
+    #[msg("token is in reduce only mode")]
+    TokenInReduceOnlyMode,
+    #[msg("market is in reduce only mode")]
+    MarketInReduceOnlyMode,
+    #[msg("group is halted")]
+    GroupIsHalted,
+    #[msg("the perp position has non-zero base lots")]
+    PerpHasBaseLots,
+    #[msg("there are open or unsettled spot orders")]
+    HasOpenOrUnsettledSpotOrders,
+    #[msg("has liquidatable token position")]
+    HasLiquidatableTokenPosition,
+    #[msg("has liquidatable perp base position")]
+    HasLiquidatablePerpBasePosition,
+    #[msg("has liquidatable positive perp pnl")]
+    HasLiquidatablePositivePerpPnl,
+    #[msg("account is frozen")]
+    AccountIsFrozen,
+    #[msg("Init Asset Weight can't be negative")]
+    InitAssetWeightCantBeNegative,
+    #[msg("has open perp taker fills")]
+    HasOpenPerpTakerFills,
+    #[msg("deposit crosses the current group deposit limit")]
+    DepositLimit,
+    #[msg("instruction is disabled")]
+    IxIsDisabled,
+    #[msg("no liquidatable perp base position")]
+    NoLiquidatablePerpBasePosition,
+    #[msg("perp order id not found on the orderbook")]
+    PerpOrderIdNotFound,
+    #[msg("HealthRegions allow only specific instructions between Begin and End")]
+    HealthRegionBadInnerInstruction,
+    #[msg("token is in force close")]
+    TokenInForceClose,
+    #[msg("incorrect number of health accounts")]
+    InvalidHealthAccountCount,
+    #[msg("would self trade")]
+    WouldSelfTrade,
+    #[msg("token conditional swap oracle price is not in execution range")]
+    TokenConditionalSwapPriceNotInRange,
+    #[msg("token conditional swap is expired")]
+    TokenConditionalSwapExpired,
+    #[msg("token conditional swap is not available yet")]
+    TokenConditionalSwapNotStarted,
+    #[msg("token conditional swap was already started")]
+    TokenConditionalSwapAlreadyStarted,
+    #[msg("token conditional swap it not set")]
+    TokenConditionalSwapNotSet,
+    #[msg("token conditional swap trigger did not reach min_buy_token")]
+    TokenConditionalSwapMinBuyTokenNotReached,
+    #[msg("token conditional swap cannot pay incentive")]
+    TokenConditionalSwapCantPayIncentive,
+    #[msg("token conditional swap taker price is too low")]
+    TokenConditionalSwapTakerPriceTooLow,
+    #[msg("token conditional swap index and id don't match")]
+    TokenConditionalSwapIndexIdMismatch,
+    #[msg("token conditional swap volume is too small compared to the cost of starting it")]
+    TokenConditionalSwapTooSmallForStartIncentive,
+    #[msg("token conditional swap type cannot be started")]
+    TokenConditionalSwapTypeNotStartable,
+    #[msg("a bank in the health account list should be writable but is not")]
+    HealthAccountBankNotWritable,
+    #[msg("the market does not allow limit orders too far from the current oracle value")]
+    SpotPriceBandExceeded,
+    #[msg("deposit crosses the token's deposit limit")]
+    BankDepositLimit,
+    #[msg("delegates can only withdraw to the owner's associated token account")]
+    DelegateWithdrawOnlyToOwnerAta,
+    #[msg("delegates can only withdraw if they close the token position")]
+    DelegateWithdrawMustClosePosition,
+    #[msg("delegates can only withdraw small amounts")]
+    DelegateWithdrawSmall,
+    #[msg("The provided CLMM oracle is not valid")]
+    InvalidCLMMOracle,
+    #[msg("invalid usdc/usd feed provided for the CLMM oracle")]
+    InvalidFeedForCLMMOracle,
+    #[msg("Pyth USDC/USD or SOL/USD feed not found (required by CLMM oracle)")]
+    MissingFeedForCLMMOracle,
+    #[msg("the asset does not allow liquidation")]
+    TokenAssetLiquidationDisabled,
+    #[msg("for borrows the bank must be in the health account list")]
+    BorrowsRequireHealthAccountBank,
+    #[msg("invalid sequence number")]
+    InvalidSequenceNumber,
+    #[msg("invalid health")]
+    InvalidHealth,
+    #[msg("no free openbook v2 open orders index")]
+    NoFreeOpenbookV2OpenOrdersIndex,
+    #[msg("openbook v2 open orders exist already")]
+    OpenbookV2OpenOrdersExistAlready,
+    #[msg("ctm ed25519 signature pre-instruction missing or invalid")]
+    CtmSignatureMissing,
+    #[msg("execution queue is full")]
+    ExecutionQueueFull,
+    #[msg("execution queue ingress is paused")]
+    ExecutionQueueIngressPaused,
+    #[msg("execution queue execution is paused")]
+    ExecutionQueueExecutePaused,
+    #[msg("execution queue payload exceeds max size")]
+    ExecutionQueuePayloadTooLarge,
+    #[msg("execution queue payload hash mismatch")]
+    ExecutionQueuePayloadHashMismatch,
+    #[msg("execution queue accounts hash mismatch")]
+    ExecutionQueueAccountsHashMismatch,
+    #[msg("execution queue envelope expired")]
+    ExecutionQueueEnvelopeExpired,
+    #[msg("execution queue duplicate sequence")]
+    ExecutionQueueDuplicateSequence,
+    #[msg("execution queue invalid item kind")]
+    ExecutionQueueInvalidItemKind,
+    #[msg("execution queue payload decode failed")]
+    ExecutionQueuePayloadDecodeFailed,
+    #[msg("execution queue payload version unsupported")]
+    ExecutionQueuePayloadVersionUnsupported,
+    #[msg("execution queue payload variant invalid")]
+    ExecutionQueuePayloadVariantInvalid,
+    #[msg("execution queue payload kind mismatch")]
+    ExecutionQueuePayloadKindMismatch,
+    #[msg("execution queue execute accounts hash mismatch")]
+    ExecutionQueueExecuteAccountsHashMismatch,
+    #[msg("execution queue dispatch invocation failed")]
+    ExecutionQueueDispatchFailed,
+    #[msg("execution queue dispatch account layout invalid")]
+    ExecutionQueueDispatchAccountLayoutInvalid,
+    #[msg("execution queue owner must be queue authority")]
+    ExecutionQueueOwnerMustBeQueueAuthority,
+    #[msg("execution queue user signature pre-instruction missing or invalid")]
+    ExecutionQueueUserSignatureMissing,
+    #[msg("execution queue invalid user account for intent verification")]
+    ExecutionQueueInvalidUserAccount,
+    #[msg("execution queue admin action requires execution to be paused")]
+    ExecutionQueueAdminActionRequiresPause,
+    #[msg("execution queue sequence is not currently pending")]
+    ExecutionQueueSequenceNotPending,
+    #[msg("execution queue sub-queue slots exhausted (no slot available for new market)")]
+    ExecutionQueueSubQueueSlotsExhausted,
+    #[msg("execution queue sub-queue market_index does not match dispatched perp market")]
+    ExecutionQueueSubQueueMarketIndexMismatch,
+    #[msg("execution queue layout version mismatch (expected v2; account is v1 — run migration)")]
+    ExecutionQueueSubQueueLayoutVersionMismatch,
+    #[msg("execution queue sub-queue invalid market_index (not registered)")]
+    ExecutionQueueSubQueueInvalidMarketIndex,
+    #[msg("execution queue perp health accounts invalid")]
+    ExecutionQueuePerpHealthAccountsInvalid,
+    #[msg("execution queue invalid page_size")]
+    ExecutionQueueInvalidPageSize,
+    #[msg("execution queue invalid num_pages")]
+    ExecutionQueueInvalidNumPages,
+    #[msg("execution queue invalid soft_limit")]
+    ExecutionQueueInvalidSoftLimit,
+    #[msg("execution queue page_slot out of range for queue root")]
+    ExecutionQueuePageSlotOutOfRange,
+    #[msg("execution queue assigned_abs_page_no does not match page_slot ring position")]
+    ExecutionQueueAssignedPageMismatch,
+    #[msg("execution queue only supports shard_id = 0")]
+    ExecutionQueueUnsupportedShardId,
+    #[msg("execution queue page belongs to a different queue root")]
+    ExecutionQueuePageQueueRootMismatch,
+    #[msg("execution queue page is not active")]
+    ExecutionQueuePageInactive,
+    #[msg("execution queue page offset out of range")]
+    ExecutionQueuePageOffsetOutOfRange,
+    #[msg("execution queue commit batch is empty or exceeds the per-tx cap")]
+    ExecutionQueueInvalidCommitBatch,
+    #[msg("execution queue commit batch hash does not match the relayer signature")]
+    ExecutionQueueCommitBatchHashMismatch,
+    #[msg("execution queue reveal batch is empty or exceeds the per-tx cap")]
+    ExecutionQueueInvalidRevealBatch,
+    #[msg("execution queue reveal does not match the stored commit hash")]
+    ExecutionQueueCommitRevealMismatch,
+    #[msg("execution queue reveal refers to a non-pending or missing commit slot")]
+    ExecutionQueueRevealSlotNotCommitted,
+    #[msg("execution queue reveal sequence is out of order")]
+    ExecutionQueueRevealOutOfOrder,
+    #[msg("execution queue reveal envelope field disagrees with stored commit")]
+    ExecutionQueueRevealEnvelopeMismatch,
+    #[msg("execution queue envelope has min_execute_slot > expires_at_slot")]
+    ExecutionQueueEnvelopeTimingInvalid,
+    #[msg("execution queue v5 operation targets an empty sub-queue")]
+    ExecutionQueueEmpty,
+    #[msg("execution queue close requires the queue to be structurally empty")]
+    ExecutionQueueCloseRequiresEmpty,
+    #[msg("execution queue v2 account layout is not at its full, initialized size")]
+    ExecutionQueueV2LayoutNotReady,
+    #[msg("execution queue v5 commit batch is empty or exceeds the per-tx cap")]
+    ExecutionQueueV5InvalidCommitBatch,
+    #[msg("execution queue v5 reveal batch is empty or exceeds the per-tx cap")]
+    ExecutionQueueV5InvalidRevealBatch,
+    #[msg("execution queue v5 reveal does not match the stored commit hash")]
+    ExecutionQueueV5CommitRevealMismatch,
+    #[msg("execution queue v5 account layout is not at its full, initialized size")]
+    ExecutionQueueV5LayoutNotReady,
+    #[msg("execution queue v5 sub-queue is not configured for this market")]
+    ExecutionQueueV5SubQueueNotConfigured,
+    #[msg("execution queue v5 max_retries must be between 1 and 20")]
+    ExecutionQueueV5InvalidMaxRetries,
+    #[msg("execution queue v5 direct-pool account layout is not at its full, initialized size")]
+    ExecutionQueueV5DirectLayoutNotReady,
+    #[msg("execution queue v5 direct item state disagrees with the promoted queue head")]
+    ExecutionQueueV5DirectItemMismatch,
+    #[msg("legacy execution queue (v3/v4) instructions are disabled in this build")]
+    LegacyQueuesDisabled,
+    #[msg("execution queue v5 reveal fermi_account / user_owner disagree with stored commit")]
+    ExecutionQueueV5RevealEnvelopeMismatch,
+    #[msg("execution queue v5 signed intent hash has already been consumed")]
+    ExecutionQueueV5IntentReplay,
+    #[msg("perp cancel must be routed through the execution queue v5 reveal path — direct callers rejected")]
+    PerpCancelRequiresExecutionQueue,
+    #[msg("execution queue envelope must set a non-zero expires_at_slot")]
+    ExecutionQueueEnvelopeExpiryRequired,
+    #[msg("execution queue envelope expires_at_slot exceeds the configured MAX_TTL_SLOTS bound")]
+    ExecutionQueueEnvelopeTtlExceeded,
+    #[msg(
+        "execution queue envelope min_execute_slot exceeds the configured MAX_DELAY_SLOTS bound"
+    )]
+    ExecutionQueueEnvelopeDelayExceeded,
+    #[msg("execution queue v5 replay cache is full of in-TTL entries — admission must wait or operator must rotate")]
+    ExecutionQueueV5ReplayCacheFull,
+    #[msg(
+        "account is not protocol-owned state of this group eligible for excess-lamport withdrawal"
+    )]
+    AdminWithdrawExcessLamportsUnsupportedAccount,
+    #[msg("v5 intent signer is not the fermi account owner or an authorized delegate")]
+    ExecutionQueueIntentSignerNotAuthorized,
+    #[msg("execution queue v5 direct intent must expire within REPLAY_RETENTION_SLOTS of the current slot")]
+    ExecutionQueueV5DirectExpiryOutOfWindow,
+}
+
+impl FermiError {
+    pub fn error_code(&self) -> u32 {
+        (*self).into()
+    }
+}
+
+pub trait IsAnchorErrorWithCode {
+    fn is_anchor_error_with_code(&self, code: u32) -> bool;
+    fn is_oracle_error(&self) -> bool;
+}
+
+impl<T> IsAnchorErrorWithCode for anchor_lang::Result<T> {
+    fn is_anchor_error_with_code(&self, code: u32) -> bool {
+        match self {
+            Err(Error::AnchorError(error)) => error.error_code_number == code,
+            _ => false,
+        }
+    }
+    fn is_oracle_error(&self) -> bool {
+        match self {
+            Err(Error::AnchorError(e)) => {
+                e.error_code_number == FermiError::OracleConfidence.error_code()
+                    || e.error_code_number == FermiError::OracleStale.error_code()
+            }
+            _ => false,
+        }
+    }
+}
+
+pub trait Contextable {
+                                                     
+       
+                                               
+    fn context(self, c: impl Display) -> Self;
+
+                                                                
+       
+                                                                      
+    fn with_context<C, F>(self, c: F) -> Self
+    where
+        C: Display,
+        F: FnOnce() -> C;
+}
+
+impl Contextable for Error {
+    fn context(self, c: impl Display) -> Self {
+        match self {
+            Error::AnchorError(err) => Error::AnchorError(AnchorError {
+                error_msg: if err.error_msg.is_empty() {
+                    format!("{}", c)
+                } else {
+                    format!("{}; {}", err.error_msg, c)
+                },
+                ..err
+            }),
+                                  
+            Error::ProgramError(err) => Error::ProgramError(err),
+        }
+    }
+    fn with_context<C, F>(self, c: F) -> Self
+    where
+        C: Display,
+        F: FnOnce() -> C,
+    {
+        self.context(c())
+    }
+}
+
+impl<T> Contextable for Result<T> {
+    fn context(self, c: impl Display) -> Self {
+        if let Err(err) = self {
+            Err(err.context(c))
+        } else {
+            self
+        }
+    }
+    fn with_context<C, F>(self, c: F) -> Self
+    where
+        C: Display,
+        F: FnOnce() -> C,
+    {
+        if let Err(err) = self {
+            Err(err.context(c()))
+        } else {
+            self
+        }
+    }
+}
+
+                                                                               
+   
+                                                    
+#[macro_export]
+macro_rules! error_msg {
+    ($($arg:tt)*) => {
+        error!(FermiError::SomeError).context(format!($($arg)*))
+    };
+}
+
+                                                                               
+   
+                                                                                
+#[macro_export]
+macro_rules! error_msg_typed {
+    ($code:expr, $($arg:tt)*) => {
+        error!($code).context(format!($($arg)*))
+    };
+}
+
+                                                             
+   
+                                                                                              
+#[macro_export]
+macro_rules! require_msg {
+    ($invariant:expr, $($arg:tt)*) => {
+        if !($invariant) {
+            return Err(error_msg!($($arg)*));
+        }
+    };
+}
+
+                                                                      
+   
+                                                                                                    
+#[macro_export]
+macro_rules! require_msg_typed {
+    ($invariant:expr, $code:expr, $($arg:tt)*) => {
+        if !($invariant) {
+            return Err(error_msg_typed!($code, $($arg)*));
+        }
+    };
+}
+
+pub use error_msg;
+pub use error_msg_typed;
+pub use require_msg;
+pub use require_msg_typed;

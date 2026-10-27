@@ -1,0 +1,50 @@
+                                                                            
+                                                                   
+[workspace]
+members = ["core"]
+resolver = "2"
+
+[package]
+name = "flp-vault"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.68"
+
+[lib]
+name = "flp_vault"
+path = "../programs/flp-vault/src/lib.rs"
+crate-type = ["cdylib", "lib"]
+doctest = false
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+                                                           
+custom-heap = []
+default = ["custom-heap", "no-idl"]
+
+[dependencies]
+anchor-lang = { version = "=0.28.0", features = ["init-if-needed"] }
+anchor-spl = { version = "=0.28.0", default-features = false, features = ["token", "token_2022", "associated_token", "mint"] }
+bytemuck = { version = "=1.14.0", features = ["min_const_generics"] }
+fixed = { git = "https://github.com/blockworks-foundation/fixed.git", rev = "01516ae3e29418feb066b67830540aa81d04df05", features = ["borsh"] }
+mango-v4 = { path = "core", default-features = false, features = ["no-entrypoint", "no-idl", "enable-gpl"] }
+solana-program = "=1.16.14"
+
+                                                                             
+                                                                            
+[patch.crates-io]
+ahash = { path = "../../third-party/ahash-0.7.8-local" }
+ahash_0_8 = { package = "ahash", path = "../../third-party/ahash-0.8.11-local" }
+
+[profile.release]
+overflow-checks = true
+lto = "fat"
+codegen-units = 1
+
+[profile.release.build-override]
+opt-level = 3
+incremental = false
+codegen-units = 1

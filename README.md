@@ -8,6 +8,8 @@ This repository contains **only** the on-chain program and what is needed to
 build it. Off-chain components (relayer, harness, clients, tooling) live in
 the main `fermi-v1` repository and are not part of the verified artifact.
 
+The deployed FLP vault and its isolated build workspace are in [flp/](flp/README.md).
+
 ## Deployed program
 
 | | |
@@ -135,5 +137,4 @@ dev-dependencies, which is why the ELF hash is unchanged.
   openbook-v2 crate inherits its dependency versions from them) and reduces
   `members` to the program. `Anchor.toml` is reduced to the program id.
 - No program source, vendored crate or lockfile entry was edited by hand. The
-  repository carries no history by design: the single commit is the
-  verification snapshot.
+  core snapshot does not import the original development history.
