@@ -18,10 +18,12 @@
     "custom-heap",
     "no-idl"
   ],
-  "remoteVerification": "pending resubmission with full-repository-compatible layout",
+  "remoteVerification": "verified",
   "coreDependencyTree": "e3a23d5c6760d3c6925545be01757d90184a3d39",
   "ahashDependencyTrees": [
     "759bffac3e90e7acba03f86ce9f641345bc414d6",
     "1c87daa7407ae9789bd6ddcc34fbdca41670c9d6"
-  ]
+  ],
+  "sourceCommit": "623f113075bd124948eabac8589bfbe8c53b11e8",
+  "remoteJob": "442741f5-762c-4d0b-8b99-57a6bc7beb12"
 }

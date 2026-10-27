@@ -1,0 +1,50 @@
+{
+  "program": "FLPRrDPN5tJpLx6wY6FUiGFN5Kws8gHUCYMCcs6Goa9Q",
+  "sourceCommit": "623f113075bd124948eabac8589bfbe8c53b11e8",
+  "verifiedAtUtc": "2026-10-27T14:59:31.001147+00:00",
+  "status": {
+    "is_verified": true,
+    "message": "On chain program verified",
+    "on_chain_hash": "5e03fd650b2d724636460edfa8f46d2b1435a4530f9999855d5573504b12c263",
+    "executable_hash": "5e03fd650b2d724636460edfa8f46d2b1435a4530f9999855d5573504b12c263",
+    "repo_url": "https://github.com/Fermi-DEX/fermi-v1-programs/tree/623f113075bd124948eabac8589bfbe8c53b11e8",
+    "commit": "623f113075bd124948eabac8589bfbe8c53b11e8",
+    "last_verified_at": "2026-10-27T14:58:09.807077",
+    "is_frozen": false,
+    "is_closed": false
+  },
+  "job": {
+    "status": "completed",
+    "message": "Job completed",
+    "on_chain_hash": "5e03fd650b2d724636460edfa8f46d2b1435a4530f9999855d5573504b12c263",
+    "executable_hash": "5e03fd650b2d724636460edfa8f46d2b1435a4530f9999855d5573504b12c263",
+    "repo_url": "https://github.com/Fermi-DEX/fermi-v1-programs/tree/623f113075bd124948eabac8589bfbe8c53b11e8"
+  },
+  "jobId": "442741f5-762c-4d0b-8b99-57a6bc7beb12",
+  "verificationPda": "HCGzYupTKsY27kkmBRe4qxdWnQDfzjFxfvp1MFAPJhVK",
+  "metadataTransactions": [
+    {
+      "signature": "4HPeQegaj5JUhroVpskGmf1Sn4m88gzx5V2oyCo9KwHf6z96A1cBr28xEff1tU32J6ErvkxfVoK9kuNxPCyi2jai",
+      "slot": 462106145,
+      "feeLamports": 15000,
+      "rentChangeLamports": 2860040,
+      "metadataReadbackPassed": true
+    },
+    {
+      "signature": "LEoSTHrU9wrFSQCLbqFTqU2KKCgEujAwhyPH1xRHE9R7LVq8tmcNw3MJvPUmCd5VjZn9omvftMJR9UdeLBMpdgF",
+      "slot": 462111392,
+      "feeLamports": 15000,
+      "rentChangeLamports": -228600,
+      "metadataReadbackPassed": true
+    }
+  ],
+  "totalNetCostLamports": 2661440,
+  "initialAttempt": {
+    "jobId": "559812ff-d05e-4452-9ee6-1cca06942b47",
+    "sourceCommit": "ce5accf088439d84e5e2bebdfb4c847cb8b79585",
+    "result": "hash mismatch",
+    "cause": "Remote verifier ignores mount-path and mounts the full repository. Moving the build adapter to the deployed workspace path reproduced the deployed bytes under this mount.",
+    "remoteExecutableHash": "2bc9575e1620741a405a2cce640beef18affaa51d5e2387db7b2b0fa62036dcc"
+  },
+  "vaultUpgradeSubmitted": false
+}

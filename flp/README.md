@@ -32,9 +32,21 @@ The remote verifier mounts the entire repository. The adapter preserves the depl
 The build reuses the identical core and hash dependencies already present in the root workspace.
 Blank source lines preserve compiler locations after comment removal. Do not reformat this snapshot before verification.
 
+## Verification result
+
+OtterSec independently rebuilt commit `623f113075bd124948eabac8589bfbe8c53b11e8` and verified its hash against mainnet.
+The local build also matches all 1,776,216 deployed ELF bytes. The remaining ProgramData bytes are zero padding.
+
+- [Verification status](https://verify.osec.io/status/FLPRrDPN5tJpLx6wY6FUiGFN5Kws8gHUCYMCcs6Goa9Q)
+- [Solscan](https://solscan.io/account/FLPRrDPN5tJpLx6wY6FUiGFN5Kws8gHUCYMCcs6Goa9Q)
+- [Public verification receipt](verification.json)
+
+The first remote attempt changed the compiler paths through its full-repository mount and produced a different hash.
+The root build adapter resolves that difference without changing the vault code or deployed program.
+
 ## Verify
 
-Set `COMMIT` to the published commit that contains this snapshot.
+Set `COMMIT=623f113075bd124948eabac8589bfbe8c53b11e8` for the verified snapshot.
 Set `RPC_URL` to a mainnet RPC endpoint.
 Run:
 
