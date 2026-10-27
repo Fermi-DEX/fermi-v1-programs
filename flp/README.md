@@ -2,7 +2,8 @@
 
 This directory contains the deployed FLP vault and its build dependencies.
 The build produces only `flp_vault.so`.
-The core source here is a library dependency. The root workspace builds the separate Fermi core program.
+The vault uses the existing core source as a library dependency.
+The root workspace builds the separate Fermi core program.
 
 | Field | Value |
 |---|---|
@@ -25,8 +26,10 @@ bash flp/build.sh
 ```
 
 The script uses the pinned Solana verification image and checks the complete ELF hash.
-Cargo uses the lockfile in `programs/flp-vault/build`.
-The nested directory layout preserves the source paths embedded in the deployed binary.
+Cargo uses the lockfile in `flp-vault/build` at the repository root.
+The root build adapter and source symlink preserve the original compiler paths.
+The remote verifier mounts the entire repository. The adapter preserves the deployed workspace path under that mount.
+The build reuses the identical core and hash dependencies already present in the root workspace.
 Blank source lines preserve compiler locations after comment removal. Do not reformat this snapshot before verification.
 
 ## Verify
@@ -40,8 +43,7 @@ solana-verify verify-from-repo \
   --url "$RPC_URL" \
   --program-id FLPRrDPN5tJpLx6wY6FUiGFN5Kws8gHUCYMCcs6Goa9Q \
   --commit-hash "$COMMIT" \
-  --mount-path flp/programs \
-  --workspace-path flp/programs/flp-vault/build \
+  --workspace-path flp-vault/build \
   --library-name flp_vault \
   --base-image solanafoundation/solana-verifiable-build@sha256:e9cfc73adb9d966d9aed5a10a4943726f42002fe25ac9506e3c32e4580e7d743 \
   https://github.com/Fermi-DEX/fermi-v1-programs
@@ -61,5 +63,5 @@ See the [Solana verification guide](https://solana.com/docs/programs/verified-bu
 
 ## Licenses
 
-Required license notices remain in `programs/LICENSE` and the dependency directories.
+Required license notices remain in the root `LICENSE` and the dependency directories.
 The core instruction library uses GPL-3.0. The hash dependencies retain their upstream licenses.

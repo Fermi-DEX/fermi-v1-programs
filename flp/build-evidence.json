@@ -11,13 +11,17 @@
   "allocationPaddingZero": true,
   "solanaVerify": "0.5.2",
   "image": "solanafoundation/solana-verifiable-build@sha256:e9cfc73adb9d966d9aed5a10a4943726f42002fe25ac9506e3c32e4580e7d743",
-  "buildMountPath": "flp/programs",
-  "workspacePath": "flp/programs/flp-vault/build",
+  "buildMountPath": ".",
+  "workspacePath": "flp-vault/build",
   "library": "flp_vault",
   "features": [
     "custom-heap",
     "no-idl"
   ],
-  "commentsRemoved": 6806,
-  "remoteVerification": "not submitted"
+  "remoteVerification": "pending resubmission with full-repository-compatible layout",
+  "coreDependencyTree": "e3a23d5c6760d3c6925545be01757d90184a3d39",
+  "ahashDependencyTrees": [
+    "759bffac3e90e7acba03f86ce9f641345bc414d6",
+    "1c87daa7407ae9789bd6ddcc34fbdca41670c9d6"
+  ]
 }
